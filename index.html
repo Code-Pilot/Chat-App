@@ -15,6 +15,15 @@
       #messageArea{
         display: none;
       }
+
+      .error {
+        color:red
+      }
+
+      .whisper {
+        color: grey;
+        font-style: italic;
+      }
     </style>
 
 
@@ -72,7 +81,9 @@
 
     $messageForm.submit(function(e) {
       e.preventDefault();
-      socket.emit('send message', $message.val());
+      socket.emit('send message', $message.val(), function(data) {
+            $chat.append('<div class="well error"><strong>'+data+'</strong>: '+data.msg+'</div>')
+      })
       $message.val('');
     })
 
@@ -90,13 +101,27 @@
       });
       $username.val('');
     });
+
     socket.on('get users', function(data){
       var html = '';
       for(i = 0; i < data.length; i++) {
-        html += '<li class="list-group-item">'+data[i]+'</li>';
+        html += '<li class="list-group-item it">'+data[i]+'</li>';
       }
       $users.html(html)
     })
+
+    // $('.it').click(function() {
+    //   console.log('ouch');
+    //   socket.emit('private', {
+    //     room: $userName,
+    //     message: 'You are now chatting with Me'
+    //   })
+    // })
+
+    socket.on('whisper', function(data){
+      $chat.append('<div class="well whisper"><strong>'+data.user+'</strong>: '+data.msg+'</div>')
+    })
+
   });
 </script>
 
