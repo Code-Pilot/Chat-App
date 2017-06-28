@@ -2,8 +2,9 @@ var express = require('express');
 var  app = express();
 var server = require('http').createServer(app);
 var io = require('socket.io').listen(server);
-users = {};
-connections = [];
+var users = {};
+var connections = [];
+var privaeRooms = {}
 
 var port = process.env.PORT || 3000
 
@@ -39,7 +40,7 @@ io.sockets.on('connection', function(socket) {
         if(name in users) {
           users[name].emit('whisper',
            {
-            message: message,
+            msg: message,
             user: socket.username
           })
           console.log('whisper!');
@@ -50,9 +51,15 @@ io.sockets.on('connection', function(socket) {
         callback('Error! Please enter a message for your whisper.')
         }
       } else {
-    io.sockets.emit('new message', {message: message, user: socket.username
+    io.sockets.emit('new message', {msg: message, user: socket.username
     })
     }
+  })
+
+  socket.on('send private message', function(data, callback){
+    var message = data.trim()
+    io.sockets.emit('new private message', {msg: message, user: socket.username
+    })
   })
 
 
@@ -67,7 +74,21 @@ io.sockets.on('connection', function(socket) {
     updateUsernames()
     }
   });
+
   function updateUsernames() {
     io.sockets.emit('get users', Object.keys(users));
   }
+
+  socket.on('private', function(data){
+    console.log(data);
+    if(data.users[0] != '' && data.users[1] != '') {
+      var roomName = data.users.join('_')
+      // console.log(roomName, data);
+      socket.join(roomName)
+      console.log(roomName);
+      users[data.users[1]].join(roomName)
+      io.in(roomName).emit('privateRoom', data)
+    }
+  })
+
 })

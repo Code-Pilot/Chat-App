@@ -66,6 +66,34 @@
       </div>
     </div>
 
+
+    <!-- PRIVATE CHAT   PRIVATE CHAT   PRIVATE CHAT   PRIVATE CHAT  -->
+
+    <div id="privateChat">
+
+      <div id="messageArea1" class="row">
+        <div class="col-md-4">
+          <div class="well">
+            <h3>Online Users</h3>
+            <ul class="list-group" id="users1"></ul>
+          </div>
+        </div>
+        <div class="col-md-8">
+          <div class="chat" id="chat1"></div>
+          <form class="" id="messageForm1" action="index.html" method="post">
+            <div class="form-group">
+              <label for="">Enter Message</label>
+              <textarea class="form-control" id="message1" name="name" rows="8" cols="80"></textarea>
+              <br />
+              <input type="submit" name="" class="btn btn-primary" value="Send Message">
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    </div>
+
 <script>
   $(function() {
     var socket = io.connect();
@@ -78,6 +106,15 @@
     var $users = $('#users')
     var $username = $('#username')
 
+    var $messageForm1 = $('#messageForm1');
+    var $message1 = $('#message1');
+    var $chat1 = $('#chat1');
+    var $messageArea1 = $('#messageArea1');
+    var $userFormArea1 = $('#userFormArea1')
+    var $userForm1 = $('#userForm1')
+    var $users1 = $('#users1')
+    var $username1 = $('#username1')
+
 
     $messageForm.submit(function(e) {
       e.preventDefault();
@@ -86,6 +123,8 @@
       })
       $message.val('');
     })
+
+
 
     socket.on('new message', function(data) {
       $chat.append('<div class="well"><strong>'+data.user+'</strong>: '+data.msg+'</div>')
@@ -99,7 +138,7 @@
           $messageArea.show();
         }
       });
-      $username.val('');
+      // $username.val('');
     });
 
     socket.on('get users', function(data){
@@ -110,17 +149,37 @@
       $users.html(html)
     })
 
-    // $('.it').click(function() {
-    //   console.log('ouch');
-    //   socket.emit('private', {
-    //     room: $userName,
-    //     message: 'You are now chatting with Me'
-    //   })
-    // })
-
     socket.on('whisper', function(data){
       $chat.append('<div class="well whisper"><strong>'+data.user+'</strong>: '+data.msg+'</div>')
     })
+
+
+
+    $(document).on('click', '.it', function(e) {
+      console.log('ouch');
+      socket.emit('private', {
+        users: [$username.val(), $(e.target).text() ],
+        message: 'You are now chatting with Me'
+      })
+    })
+
+    $messageForm1.submit(function(e) {
+      e.preventDefault();
+      socket.emit('send private message', $message1.val(), function(data) {
+            $chat1.append('<div class="well privateChat"><strong>'+data+'</strong>: '+data.msg+'</div>')
+      })
+      $message1.val('');
+    })
+
+    socket.on('new private message', function(data) {
+      $chat1.append('<div class="well"><strong>'+data.user+'</strong>: '+data.msg+'</div>')
+    })
+
+    socket.on('privateRoom', function(data, callback) {
+        alert(data.users[0] + ' ' + '&' + ' ' + data.users[1] + ' are entering a private chat')
+    })
+
+
 
   });
 </script>
